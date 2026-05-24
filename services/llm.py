@@ -52,6 +52,15 @@ def _call_groq(messages: list[dict]) -> str:
     return resp.choices[0].message.content.strip()
 
 
+def active_provider() -> str:
+    """Returns which provider will handle requests: 'hf', 'groq', or 'none'."""
+    if _hf_client:
+        return f"huggingface ({config.HF_MODEL})"
+    if _groq_client:
+        return f"groq ({config.GROQ_MODEL})"
+    return "none"
+
+
 def ask_llm(user_text: str, history: list[dict]) -> str:
     messages = [
         {"role": "system", "content": DVORETSKY_PROMPT},
@@ -62,20 +71,22 @@ def ask_llm(user_text: str, history: list[dict]) -> str:
     # Try HuggingFace first
     if _hf_client:
         try:
-            return _call_hf(messages)
+            result = _call_hf(messages)
+            print(f"[LLM] HuggingFace ({config.HF_MODEL})")
+            return result
         except Exception as e:
             err = str(e)
-            print(f"[HF error] {err} — falling back to Groq")
-            if "429" in err:
-                # HF rate limited — go straight to fallback
-                pass
-            elif "401" in err or "403" in err:
-                print("[HF] Token permission error. Check 'Inference Providers' is enabled.")
+            if "401" in err or "403" in err:
+                print(f"[LLM] HF token error — check 'Inference Providers' permission")
+            else:
+                print(f"[LLM] HF failed ({err[:80]}) — falling back to Groq")
 
     # Fallback: Groq
     if _groq_client:
         try:
-            return _call_groq(messages)
+            result = _call_groq(messages)
+            print(f"[LLM] Groq fallback ({config.GROQ_MODEL})")
+            return result
         except Exception as e:
             err = str(e)
             if "429" in err:
