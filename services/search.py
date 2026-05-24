@@ -4,7 +4,7 @@ Free, no API key required. Returns top-3 snippets as a plain string
 ready to inject into the LLM context.
 """
 
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 
 
 def web_search(query: str, max_results: int = 3) -> str:
