@@ -35,9 +35,14 @@ def ask_llm(user_text: str, history: list[dict]) -> str:
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:
-        if "429" in str(e):
+        err = str(e)
+        if "429" in err:
             return "Секунду, перегружен. Попробуйте ещё раз."
-        return f"Не удалось получить ответ: {e}"
+        if "401" in err or "403" in err or "api_key" in err.lower():
+            return "Ошибка: неверный GROQ_API_KEY. Проверьте переменные окружения."
+        if "connection" in err.lower() or "network" in err.lower():
+            return f"Ошибка сети: {type(e).__name__} — {err}"
+        return f"Ошибка LLM ({type(e).__name__}): {err}"
 
 
 def ask_llm_with_search(user_text: str, history: list[dict], search_results: str) -> str:
