@@ -6,7 +6,7 @@ import config  # loads .env on import
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🎩 Дворецкий backend starting...")
-    print(f"   Model : {config.GROQ_MODEL}")
+    print(f"   LLM   : HuggingFace {config.HF_MODEL} (fallback: Groq {config.GROQ_MODEL})")
     print(f"   Music : {config.MUSIC_API_URL}")
     yield
     print("Shutting down.")
